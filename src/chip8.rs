@@ -25,6 +25,7 @@ pub struct Chip8 {
     pub keypad: Keypad,
     delay_timer: u8,
     sound_timer: u8,
+    pub update_screen: bool,
 }
 
 impl Chip8 {
@@ -43,6 +44,7 @@ impl Chip8 {
             keypad: Keypad::new(),
             delay_timer: 0,
             sound_timer: 0,
+            update_screen: false
         }
     }
 
@@ -68,12 +70,14 @@ impl Chip8 {
     }
 
     pub fn run_cpu_cycle(&mut self) {
-        if self.delay_timer > 0 { self.delay_timer -= 1 }
-        if self.sound_timer > 0 { self.sound_timer -= 1 }
-
         let op_code = self.read_opcode();
         self.program_counter += 2; // incrementing twice because opcode is 2 bytes long
         self.process_opcode(op_code);
+    }
+
+    pub fn update_timers(&mut self) {
+        if self.delay_timer > 0 { self.delay_timer -= 1 }
+        if self.sound_timer > 0 { self.sound_timer -= 1 }
     }
 
     /// opcodes are 2 bytes long, but our memory can only have one byte per slot
@@ -333,6 +337,7 @@ impl Chip8 {
                 }
             }
         }
+        self.update_screen = true
     }
 
     fn handle_ex9e(&mut self, x: usize) {
